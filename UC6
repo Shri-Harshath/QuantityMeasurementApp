@@ -1,0 +1,95 @@
+enum LengthUnit {
+    FEET(1.0),
+    INCHES(1.0 / 12.0),
+    YARDS(3.0),
+    CENTIMETERS(0.0328084);
+
+    double factor;
+
+    LengthUnit(double factor) {
+        this.factor = factor;
+    }
+
+    double toFeet(double value) {
+        return value * factor;
+    }
+
+    double fromFeet(double value) {
+        return value / factor;
+    }
+}
+
+class QuantityLength {
+    double value;
+    LengthUnit unit;
+
+    QuantityLength(double value, LengthUnit unit) {
+        if (unit == null || !Double.isFinite(value)) throw new IllegalArgumentException();
+        this.value = value;
+        this.unit = unit;
+    }
+
+    double toFeet() {
+        return unit.toFeet(value);
+    }
+
+    QuantityLength convertTo(LengthUnit target) {
+        if (target == null) throw new IllegalArgumentException();
+        double feet = toFeet();
+        double v = target.fromFeet(feet);
+        return new QuantityLength(v, target);
+    }
+
+    static double convert(double value, LengthUnit from, LengthUnit to) {
+        if (from == null || to == null || !Double.isFinite(value)) throw new IllegalArgumentException();
+        double feet = from.toFeet(value);
+        return to.fromFeet(feet);
+    }
+
+    QuantityLength add(QuantityLength other) {
+        if (other == null) throw new IllegalArgumentException();
+        double sum = this.toFeet() + other.toFeet();
+        double res = this.unit.fromFeet(sum);
+        return new QuantityLength(res, this.unit);
+    }
+
+    static QuantityLength add(QuantityLength a, QuantityLength b, LengthUnit target) {
+        if (a == null || b == null || target == null) throw new IllegalArgumentException();
+        double sum = a.toFeet() + b.toFeet();
+        double res = target.fromFeet(sum);
+        return new QuantityLength(res, target);
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QuantityLength q = (QuantityLength) o;
+        return Math.abs(this.toFeet() - q.toFeet()) < 0.0001;
+    }
+
+    public String toString() {
+        return "Quantity(" + value + ", " + unit + ")";
+    }
+}
+
+public class QuantityMeasurementApp {
+    public static void main(String[] args) {
+        QuantityLength a = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength b = new QuantityLength(12.0, LengthUnit.INCHES);
+        System.out.println(a.add(b));
+
+        QuantityLength c = new QuantityLength(12.0, LengthUnit.INCHES);
+        QuantityLength d = new QuantityLength(1.0, LengthUnit.FEET);
+        System.out.println(c.add(d));
+
+        QuantityLength e = new QuantityLength(1.0, LengthUnit.YARDS);
+        QuantityLength f = new QuantityLength(3.0, LengthUnit.FEET);
+        System.out.println(e.add(f));
+
+        QuantityLength g = new QuantityLength(2.54, LengthUnit.CENTIMETERS);
+        QuantityLength h = new QuantityLength(1.0, LengthUnit.INCHES);
+        System.out.println(g.add(h));
+
+        System.out.println(QuantityLength.add(a, b, LengthUnit.FEET));
+    }
+}

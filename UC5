@@ -1,0 +1,95 @@
+enum LengthUnit {
+    FEET(1.0),
+    INCHES(1.0 / 12.0),
+    YARDS(3.0),
+    CENTIMETERS(0.0328084);
+
+    private final double toFeetFactor;
+
+    LengthUnit(double toFeetFactor) {
+        this.toFeetFactor = toFeetFactor;
+    }
+
+    public double toFeet(double value) {
+        return value * toFeetFactor;
+    }
+
+    public double fromFeet(double value) {
+        return value / toFeetFactor;
+    }
+}
+
+class QuantityLength {
+    private final double value;
+    private final LengthUnit unit;
+
+    public QuantityLength(double value, LengthUnit unit) {
+        if (unit == null || !Double.isFinite(value)) throw new IllegalArgumentException();
+        this.value = value;
+        this.unit = unit;
+    }
+
+    private double toFeet() {
+        return unit.toFeet(value);
+    }
+
+    public QuantityLength convertTo(LengthUnit targetUnit) {
+        if (targetUnit == null) throw new IllegalArgumentException();
+        double feetValue = toFeet();
+        double converted = targetUnit.fromFeet(feetValue);
+        return new QuantityLength(converted, targetUnit);
+    }
+
+    public static double convert(double value, LengthUnit source, LengthUnit target) {
+        if (source == null || target == null || !Double.isFinite(value)) throw new IllegalArgumentException();
+        double feetValue = source.toFeet(value);
+        return target.fromFeet(feetValue);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        QuantityLength other = (QuantityLength) obj;
+        return Math.abs(this.toFeet() - other.toFeet()) < 0.0001;
+    }
+
+    @Override
+    public String toString() {
+        return value + " " + unit;
+    }
+}
+
+public class QuantityMeasurementApp {
+    public static void demonstrateLengthConversion(double value, LengthUnit from, LengthUnit to) {
+        double result = QuantityLength.convert(value, from, to);
+        System.out.println(result);
+    }
+
+    public static void demonstrateLengthConversion(QuantityLength quantity, LengthUnit to) {
+        QuantityLength converted = quantity.convertTo(to);
+        System.out.println(converted);
+    }
+
+    public static void demonstrateLengthEquality(QuantityLength q1, QuantityLength q2) {
+        System.out.println(q1.equals(q2));
+    }
+
+    public static void demonstrateLengthComparison(double v1, LengthUnit u1, double v2, LengthUnit u2) {
+        QuantityLength q1 = new QuantityLength(v1, u1);
+        QuantityLength q2 = new QuantityLength(v2, u2);
+        demonstrateLengthEquality(q1, q2);
+    }
+
+    public static void main(String[] args) {
+        demonstrateLengthConversion(1.0, LengthUnit.FEET, LengthUnit.INCHES);
+        demonstrateLengthConversion(3.0, LengthUnit.YARDS, LengthUnit.FEET);
+        demonstrateLengthConversion(36.0, LengthUnit.INCHES, LengthUnit.YARDS);
+        demonstrateLengthConversion(1.0, LengthUnit.CENTIMETERS, LengthUnit.INCHES);
+
+        QuantityLength q = new QuantityLength(2.0, LengthUnit.YARDS);
+        demonstrateLengthConversion(q, LengthUnit.FEET);
+
+        demonstrateLengthComparison(1.0, LengthUnit.YARDS, 3.0, LengthUnit.FEET);
+    }
+}

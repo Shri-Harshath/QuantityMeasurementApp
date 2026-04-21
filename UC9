@@ -1,0 +1,100 @@
+enum WeightUnit {
+    KILOGRAM(1.0),
+    GRAM(0.001),
+    POUND(0.453592);
+
+    double factor;
+
+    WeightUnit(double factor) {
+        this.factor = factor;
+    }
+
+    double convertToBaseUnit(double value) {
+        return value * factor;
+    }
+
+    double convertFromBaseUnit(double value) {
+        return value / factor;
+    }
+}
+
+class QuantityWeight {
+    double value;
+    WeightUnit unit;
+
+    QuantityWeight(double value, WeightUnit unit) {
+        if (unit == null || !Double.isFinite(value)) throw new IllegalArgumentException();
+        this.value = value;
+        this.unit = unit;
+    }
+
+    double toBase() {
+        return unit.convertToBaseUnit(value);
+    }
+
+    QuantityWeight convertTo(WeightUnit target) {
+        if (target == null) throw new IllegalArgumentException();
+        double base = toBase();
+        double v = target.convertFromBaseUnit(base);
+        return new QuantityWeight(v, target);
+    }
+
+    QuantityWeight add(QuantityWeight other) {
+        if (other == null) throw new IllegalArgumentException();
+        double sum = this.toBase() + other.toBase();
+        double res = this.unit.convertFromBaseUnit(sum);
+        return new QuantityWeight(res, this.unit);
+    }
+
+    QuantityWeight add(QuantityWeight other, WeightUnit target) {
+        if (other == null || target == null) throw new IllegalArgumentException();
+        double sum = this.toBase() + other.toBase();
+        double res = target.convertFromBaseUnit(sum);
+        return new QuantityWeight(res, target);
+    }
+
+    static QuantityWeight add(QuantityWeight a, QuantityWeight b, WeightUnit target) {
+        if (a == null || b == null || target == null) throw new IllegalArgumentException();
+        double sum = a.toBase() + b.toBase();
+        double res = target.convertFromBaseUnit(sum);
+        return new QuantityWeight(res, target);
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QuantityWeight q = (QuantityWeight) o;
+        return Math.abs(this.toBase() - q.toBase()) < 0.0001;
+    }
+
+    public int hashCode() {
+        return Double.valueOf(toBase()).hashCode();
+    }
+
+    public String toString() {
+        return "Quantity(" + value + ", " + unit + ")";
+    }
+}
+
+public class QuantityMeasurementApp {
+    public static void main(String[] args) {
+        QuantityWeight a = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
+        QuantityWeight b = new QuantityWeight(1000.0, WeightUnit.GRAM);
+        System.out.println(a.equals(b));
+
+        QuantityWeight c = new QuantityWeight(2.0, WeightUnit.POUND);
+        System.out.println(c.convertTo(WeightUnit.KILOGRAM));
+
+        QuantityWeight d = new QuantityWeight(500.0, WeightUnit.GRAM);
+        QuantityWeight e = new QuantityWeight(0.5, WeightUnit.KILOGRAM);
+        System.out.println(d.add(e));
+
+        QuantityWeight f = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
+        QuantityWeight g = new QuantityWeight(1000.0, WeightUnit.GRAM);
+        System.out.println(f.add(g, WeightUnit.GRAM));
+
+        QuantityWeight h = new QuantityWeight(2.0, WeightUnit.KILOGRAM);
+        QuantityWeight i = new QuantityWeight(4.0, WeightUnit.POUND);
+        System.out.println(h.add(i, WeightUnit.KILOGRAM));
+    }
+}
