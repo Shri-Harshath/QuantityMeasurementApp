@@ -25,7 +25,7 @@ public class QuantityMeasurementApp {
         System.out.println("Equal (" + f1.equals(f2) + ")");
     }
 
-    public static class QuantityMeasurementAppTest {
+    public static class UC9 {
 
         @Test
         void testEquality_SameValue() {
